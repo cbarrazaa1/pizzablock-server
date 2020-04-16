@@ -1,6 +1,6 @@
 import io from 'socket.io';
 import {StrMap} from './util/Types';
-import { Packet, PacketType } from './Packets';
+import { Packet, PacketType, EnterGamePacket, EnterQueuePacket } from './Packets';
 import Game from './Game';
 
 type PacketHandler = (socket: io.Socket, packet: Packet) => void;
@@ -54,6 +54,10 @@ class Server {
     delete this.sockets[socket.conn.id];
   }
 
+  private sendEnterGame(socket: io.Socket, other: io.Socket, initialLevel: number) {
+    this.sendDataTo(socket, new EnterGamePacket({otherID: other.conn.id, initialLevel}));
+  }
+
   private handleEvent(socket: io.Socket, packet: Packet): void {
     const handler = this.handlers[packet.type];
     if (handler != null) {
@@ -61,21 +65,16 @@ class Server {
     }
   }
 
-  private handleEnterQueue1v1(socket: io.Socket, packet: Packet): void {
+  private handleEnterQueue1v1(socket: io.Socket, _: EnterQueuePacket): void {
     // check if someone else is in queue
     if (this.queue1v1.length > 0) {
       const other = this.queue1v1.shift()!;
-      this.sendDataTo(socket, {
-        type: PacketType.S_1v1_ENTER_GAME,
-        data: {otherID: other.conn.id},
-      });
-
-      this.sendDataTo(other, {
-        type: PacketType.S_1v1_ENTER_GAME,
-        data: {otherID: socket.conn.id},
-      });
-
       const game = new Game([socket, other]);
+
+      // notify players that game started
+      this.sendEnterGame(socket, other, 9);
+      this.sendEnterGame(other, socket, 9);
+
       this.games.push(game);
       return;
     }

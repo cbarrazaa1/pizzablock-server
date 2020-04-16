@@ -1,38 +1,60 @@
 import io from 'socket.io';
-import Player from "./Player";
-import { StrMap } from "./util/Types";
+import Player from './Player';
+import {StrMap} from './util/Types';
 import {server} from './App';
-import { PacketType, Packet } from './Packets';
+import {
+  PacketType,
+  Packet,
+  PlaceBlockPacket,
+  PlayerPlaceBlockPacket,
+} from './Packets';
 
 class Game {
   private players: StrMap<Player>;
 
   constructor(sockets: io.Socket[]) {
     this.players = {};
-    sockets.forEach(socket => {
+    sockets.forEach((socket) => {
       this.players[socket.conn.id] = new Player(socket);
-    })
+    });
 
     this.initNetworkHandlers();
   }
 
   private sendDataToAllBut(socket: io.Socket, packet: Packet) {
-    Object.values(this.players).forEach(player => {
-      if (socket.conn.id !== player.socket.conn.id) { 
+    Object.values(this.players).forEach((player) => {
+      if (socket.conn.id !== player.socket.conn.id) {
         server.sendDataTo(player.socket, packet);
       }
-    })
+    });
+  }
+
+  private sendPlayerPlaceBlock(exclude: Player, packet: PlaceBlockPacket) {
+    this.sendDataToAllBut(
+      exclude.socket,
+      new PlayerPlaceBlockPacket({
+        block: packet.data,
+        level: exclude.level,
+        lines: exclude.lines,
+        score: exclude.score,
+      }),
+    );
   }
 
   private initNetworkHandlers(): void {
-    server.on(PacketType.C_1v1_PLACE_BLOCK, this.handlePlayerPlaceBlock.bind(this));
+    server.on(PacketType.C_1v1_PLACE_BLOCK, this.handlePlaceBlock.bind(this));
   }
 
-  private handlePlayerPlaceBlock(socket: io.Socket, packet: Packet): void {
-    this.sendDataToAllBut(socket, {
-      type: PacketType.S_1v1_PLAYER_PLACE_BLOCK,
-      data: packet.data,
-    });
+  private handlePlaceBlock(socket: io.Socket, packet: PlaceBlockPacket): void {
+    const block = packet.data;
+    const {x, y, data} = block;
+    const player = this.players[socket.conn.id];
+
+    // update player's board
+    player.updateBoard(x, y, data);
+
+    // send update to other players
+    this.sendPlayerPlaceBlock(player, packet);
   }
 }
 
