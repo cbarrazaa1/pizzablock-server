@@ -1,6 +1,6 @@
 import io from 'socket.io';
 import Player from './Player';
-import {StrMap} from './util/Types';
+import {StrMap, Nullable} from './util/Types';
 import {server} from './App';
 import {
   PacketType,
@@ -29,7 +29,7 @@ class Game {
     });
   }
 
-  private sendPlayerPlaceBlock(exclude: Player, packet: PlaceBlockPacket) {
+  private sendPlayerPlaceBlock(exclude: Player, packet: PlaceBlockPacket, clearedLines: number[]) {
     this.sendDataToAllBut(
       exclude.socket,
       new PlayerPlaceBlockPacket({
@@ -37,6 +37,7 @@ class Game {
         level: exclude.level,
         lines: exclude.lines,
         score: exclude.score,
+        clearedLines,
       }),
     );
   }
@@ -51,10 +52,10 @@ class Game {
     const player = this.players[socket.conn.id];
 
     // update player's board
-    player.updateBoard(x, y, data);
+    const clearedLines = player.updateBoard(x, y, data);
 
     // send update to other players
-    this.sendPlayerPlaceBlock(player, packet);
+    this.sendPlayerPlaceBlock(player, packet, clearedLines);
   }
 }
 

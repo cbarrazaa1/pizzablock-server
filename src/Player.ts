@@ -1,4 +1,5 @@
 import io from 'socket.io';
+import { Nullable } from './util/Types';
 
 export const BOARD_WIDTH = 10;
 export const BOARD_HEIGHT = 20;
@@ -23,7 +24,7 @@ class Player {
     this.lineCounter = 0;
   }
 
-  public updateBoard(x: number, y: number, data: number[][]): void {
+  public updateBoard(x: number, y: number, data: number[][]): number[] {
     const shapeWidth = data[0].length;
     const shapeHeight = data.length;
 
@@ -98,6 +99,8 @@ class Player {
         completedLine = true;
       }
     }
+
+    return linesY;
   }
 
   private calcLineClearScore(lineCount: number): number {
