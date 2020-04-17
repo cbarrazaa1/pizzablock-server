@@ -6,7 +6,7 @@ import { httpServer } from './HttpServer';
 
 type PacketHandler = (socket: io.Socket, packet: Packet) => void;
 
-class Server {
+export default class Server {
   private server: io.Server;
   private sockets: StrMap<io.Socket>;
   private handlers: StrMap<PacketHandler>;
@@ -85,4 +85,10 @@ class Server {
   }
 }
 
-export const server = new Server(io(httpServer));
+let server!: Server;
+
+export function setServer(svr: Server): void {
+  server = svr;
+}
+
+export {server};
