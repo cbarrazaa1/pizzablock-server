@@ -1,7 +1,7 @@
 import io from 'socket.io';
 import Player from './Player';
 import {StrMap, Nullable} from './util/Types';
-import {server} from './App';
+import {server} from './Server';
 import {
   PacketType,
   Packet,

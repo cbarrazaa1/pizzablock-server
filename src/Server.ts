@@ -2,6 +2,7 @@ import io from 'socket.io';
 import {StrMap} from './util/Types';
 import { Packet, PacketType, EnterGamePacket, EnterQueuePacket } from './Packets';
 import Game from './Game';
+import { httpServer } from './HttpServer';
 
 type PacketHandler = (socket: io.Socket, packet: Packet) => void;
 
@@ -84,4 +85,4 @@ class Server {
   }
 }
 
-export default Server;
+export const server = new Server(io(httpServer));
