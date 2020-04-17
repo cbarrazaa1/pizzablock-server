@@ -85,4 +85,4 @@ class Server {
   }
 }
 
-export const server = new Server(io(httpServer));
+export const server = new Server(io(httpServer, {origins: 'http://localhost:3000'}));
