@@ -49,57 +49,51 @@ class Player {
           break;
         }
       }
-
-      const checkShiftBlocks = (): void => {
-        if (linesY.length > 0) {
-          let sequentialClear = true;
-
-          // check if lines were cleared separately
-          if (linesY.length === 2) {
-            if (linesY[1] - linesY[0] !== 1) {
-              sequentialClear = false;
-            }
-          }
-
-          // shift blocks down
-          const shiftBlocks = (clearY: number, shiftCount: number): void => {
-            for (let y = clearY - 1; y >= 0; y--) {
-              for (let x = 0; x < BOARD_WIDTH; x++) {
-                this.board[x][y + shiftCount] = this.board[x][y];
-                this.board[x][y] = 0;
-              }
-            }
-          };
-
-          if (sequentialClear) {
-            shiftBlocks(linesY[0], linesY.length);
-          } else {
-            shiftBlocks(linesY[0], 1);
-            shiftBlocks(linesY[1], 1);
-          }
-        }
-      };
-
+      
       if (completedLine) {
         linesY.push(y);
-
-        if (y === endY) {
-          checkShiftBlocks();
-          this.lines += linesY.length;
-          this.lineCounter += linesY.length;
-          this.score += this.calcLineClearScore(linesY.length);
-
-          // check level up
-          if (this.lineCounter >= 10) {
-            this.level++;
-            this.lineCounter = 0;
-          }
-        }
       } else {
         completedLine = true;
       }
     }
 
+    if (linesY.length > 0) {
+      let sequentialClear = true;
+
+      // check if lines were cleared separately
+      if (linesY.length === 2) {
+        if (linesY[1] - linesY[0] !== 1) {
+          sequentialClear = false;
+        }
+      }
+
+      // shift blocks down
+      const shiftBlocks = (clearY: number, shiftCount: number): void => {
+        for (let y = clearY - 1; y >= 0; y--) {
+          for (let x = 0; x < BOARD_WIDTH; x++) {
+            this.board[x][y + shiftCount] = this.board[x][y];
+            this.board[x][y] = 0;
+          }
+        }
+      };
+
+      if (sequentialClear) {
+        shiftBlocks(linesY[0], linesY.length);
+      } else {
+        shiftBlocks(linesY[0], 1);
+        shiftBlocks(linesY[1], 1);
+      }
+    }
+    this.lines += linesY.length;
+    this.lineCounter += linesY.length;
+    this.score += this.calcLineClearScore(linesY.length);
+
+    // check level up
+    if (this.lineCounter >= 10) {
+      this.level++;
+      this.lineCounter = 0;
+    }
+    
     return linesY;
   }
 
@@ -111,6 +105,8 @@ class Player {
       base = 350;
     } else if (lineCount === 4) {
       base = 1000;
+    } else if (lineCount === 0) {
+      base = 0;
     }
 
     return base * (this.level + 1);
