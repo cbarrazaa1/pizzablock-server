@@ -4,12 +4,16 @@ import { Nullable } from './util/Types';
 export const BOARD_WIDTH = 10;
 export const BOARD_HEIGHT = 20;
 
+export type DataPacketHandler = (...args: any[]) => void;
+
 class Player {
   public socket: io.Socket;
   public board: number[][];
   public lines: number;
   public level: number;
   public score: number;
+  public gameOver: boolean;
+  public packetHandler!: DataPacketHandler;
   private lineCounter: number;
 
   constructor(socket: io.Socket) {
@@ -22,11 +26,16 @@ class Player {
     this.level = 0;
     this.score = 0;
     this.lineCounter = 0;
+    this.gameOver = false;
   }
 
   public updateBoard(x: number, y: number, data: number[][]): number[] {
     const shapeWidth = data[0].length;
     const shapeHeight = data.length;
+
+    if (this.gameOver) {
+      return [];
+    }
 
     // update the board matrix
     for (let i = 0; i < shapeHeight; i++) {
@@ -94,6 +103,13 @@ class Player {
       this.lineCounter = 0;
     }
     
+    // check game over
+    for (let x = 4; x <= 7; x++) {
+      if (this.board[x][0] === 1) {
+        this.gameOver = true;
+      }
+    }
+
     return linesY;
   }
 

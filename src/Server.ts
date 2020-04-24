@@ -2,7 +2,6 @@ import io from 'socket.io';
 import {StrMap} from './util/Types';
 import { Packet, PacketType, EnterGamePacket, EnterQueuePacket } from './Packets';
 import Game from './Game';
-import { httpServer } from './HttpServer';
 
 type PacketHandler = (socket: io.Socket, packet: Packet) => void;
 
@@ -26,7 +25,7 @@ export default class Server {
     this.initNetworkHandlers();
   }
   
-  public on(type: PacketType, handler: PacketHandler): void {
+  private on(type: PacketType, handler: PacketHandler): void {
     this.handlers[type] = handler;
   }
 
