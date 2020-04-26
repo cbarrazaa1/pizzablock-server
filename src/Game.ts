@@ -16,15 +16,17 @@ type PacketHandler = (socket: io.Socket, packet: Packet) => void;
 class Game {
   private players: StrMap<Player>;
   private handlers: StrMap<PacketHandler>;
+  private initialLevel: number;
   public hasEnded: boolean;
 
-  constructor(sockets: io.Socket[]) {
+  constructor(sockets: io.Socket[], initialLevel: number) {
     this.players = {};
     this.handlers = {};
+    this.initialLevel = initialLevel;
     this.hasEnded = false;
     this.handleEvent = this.handleEvent.bind(this);
     sockets.forEach(socket => {
-      const player = new Player(socket);
+      const player = new Player(socket, initialLevel);
       player.packetHandler = (data: any) => {
         this.handleEvent(socket, data);
       }
@@ -113,7 +115,7 @@ class Game {
 
     // check if game has ended
     let gameEnded = true;
-    let winner = {
+    const winner = {
       id: '',
       score: 0,
     };

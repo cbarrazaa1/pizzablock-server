@@ -16,14 +16,14 @@ class Player {
   public packetHandler!: DataPacketHandler;
   private lineCounter: number;
 
-  constructor(socket: io.Socket) {
+  constructor(socket: io.Socket, initialLevel: number) {
     this.socket = socket;
     this.board = new Array(BOARD_WIDTH)
       .fill(null)
       .map(() => new Array(BOARD_HEIGHT).fill(0));
 
     this.lines = 0;
-    this.level = 0;
+    this.level = initialLevel;
     this.score = 0;
     this.lineCounter = 0;
     this.gameOver = false;

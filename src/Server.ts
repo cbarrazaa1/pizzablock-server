@@ -69,7 +69,7 @@ export default class Server {
     // check if someone else is in queue
     if (this.queue1v1.length > 0) {
       const other = this.queue1v1.shift()!;
-      const game = new Game([socket, other]);
+      const game = new Game([socket, other], 9);
 
       // notify players that game started
       this.sendEnterGame(socket, other, 9);
