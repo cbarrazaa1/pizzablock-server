@@ -25,11 +25,11 @@ class Game {
     this.initialLevel = initialLevel;
     this.hasEnded = false;
     this.handleEvent = this.handleEvent.bind(this);
-    sockets.forEach(socket => {
+    sockets.forEach((socket) => {
       const player = new Player(socket, initialLevel);
       player.packetHandler = (data: any) => {
         this.handleEvent(socket, data);
-      }
+      };
 
       this.players[socket.conn.id] = player;
       socket.on('data_packet', player.packetHandler);
@@ -43,20 +43,24 @@ class Game {
   }
 
   private sendDataToAll(packet: Packet): void {
-    Object.values(this.players).forEach(player => {
+    Object.values(this.players).forEach((player) => {
       server.sendDataTo(player.socket, packet);
-    })
+    });
   }
 
   private sendDataToAllBut(socket: io.Socket, packet: Packet): void {
-    Object.values(this.players).forEach(player => {
+    Object.values(this.players).forEach((player) => {
       if (socket.conn.id !== player.socket.conn.id) {
         server.sendDataTo(player.socket, packet);
       }
     });
   }
 
-  private sendPlayerPlaceBlock(exclude: Player, packet: PlaceBlockPacket, clearedLines: number[]) {
+  private sendPlayerPlaceBlock(
+    exclude: Player,
+    packet: PlaceBlockPacket,
+    clearedLines: number[],
+  ) {
     this.sendDataToAllBut(
       exclude.socket,
       new PlayerPlaceBlockPacket({
@@ -79,14 +83,16 @@ class Game {
   }
 
   private sendEndGame(winner: Player): void {
-    this.sendDataToAll(new EndGamePacket({
-      winnerID: winner.socket.conn.id,
-    }));
+    this.sendDataToAll(
+      new EndGamePacket({
+        winnerID: winner.socket.conn.id,
+      }),
+    );
 
     this.hasEnded = true;
-    Object.values(this.players).forEach(player => {
-      player.socket.removeListener('data_packet', player.packetHandler)
-    })
+    Object.values(this.players).forEach((player) => {
+      player.socket.removeListener('data_packet', player.packetHandler);
+    });
   }
 
   private initNetworkHandlers(): void {
@@ -120,7 +126,7 @@ class Game {
       score: 0,
     };
 
-    Object.values(this.players).forEach(player => {
+    Object.values(this.players).forEach((player) => {
       if (!player.gameOver) {
         gameEnded = false;
         return;
@@ -130,7 +136,7 @@ class Game {
         winner.id = player.socket.conn.id;
         winner.score = player.score;
       }
-    })
+    });
 
     if (gameEnded) {
       this.sendEndGame(this.players[winner.id]);

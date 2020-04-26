@@ -1,5 +1,4 @@
 import io from 'socket.io';
-import { Nullable } from './util/Types';
 
 export const BOARD_WIDTH = 10;
 export const BOARD_HEIGHT = 20;
@@ -58,7 +57,7 @@ class Player {
           break;
         }
       }
-      
+
       if (completedLine) {
         linesY.push(y);
       } else {
@@ -102,7 +101,7 @@ class Player {
       this.level++;
       this.lineCounter = 0;
     }
-    
+
     // check game over
     for (let x = 4; x <= 7; x++) {
       if (this.board[x][0] === 1) {

@@ -1,6 +1,6 @@
 import io from 'socket.io';
 import {StrMap} from './util/Types';
-import { Packet, PacketType, EnterGamePacket, EnterQueuePacket } from './Packets';
+import {Packet, PacketType, EnterGamePacket, EnterQueuePacket} from './Packets';
 import Game from './Game';
 
 type PacketHandler = (socket: io.Socket, packet: Packet) => void;
@@ -24,7 +24,7 @@ export default class Server {
     this.server.on('connection', this.onSocketConnected.bind(this));
     this.initNetworkHandlers();
   }
-  
+
   private on(type: PacketType, handler: PacketHandler): void {
     this.handlers[type] = handler;
   }
@@ -32,17 +32,17 @@ export default class Server {
   public sendDataTo(socket: io.Socket, packet: Packet): void {
     socket.emit('data_packet', packet);
   }
-  
+
   private initNetworkHandlers(): void {
     this.on(PacketType.C_1V1_ENTER_QUEUE, this.handleEnterQueue1v1.bind(this));
   }
-  
-  private onSocketConnected(socket: io.Socket): void {
-    console.log(`Connection from ${socket.conn.remoteAddress}.`)
 
-    // listen for events 
+  private onSocketConnected(socket: io.Socket): void {
+    console.log(`Connection from ${socket.conn.remoteAddress}.`);
+
+    // listen for events
     socket.on('disconnect', () => this.onSocketDisconnected(socket));
-    socket.on('data_packet', data => this.handleEvent(socket, data));
+    socket.on('data_packet', (data) => this.handleEvent(socket, data));
 
     // add to socket list
     this.sockets[socket.conn.id] = socket;
@@ -54,8 +54,15 @@ export default class Server {
     delete this.sockets[socket.conn.id];
   }
 
-  private sendEnterGame(socket: io.Socket, other: io.Socket, initialLevel: number) {
-    this.sendDataTo(socket, new EnterGamePacket({otherID: other.conn.id, initialLevel}));
+  private sendEnterGame(
+    socket: io.Socket,
+    other: io.Socket,
+    initialLevel: number,
+  ) {
+    this.sendDataTo(
+      socket,
+      new EnterGamePacket({otherID: other.conn.id, initialLevel}),
+    );
   }
 
   private handleEvent(socket: io.Socket, packet: Packet): void {
