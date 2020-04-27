@@ -99,7 +99,7 @@ class Player {
     // check level up
     if (this.lineCounter >= 10) {
       this.level++;
-      this.lineCounter = 0;
+      this.lineCounter -= 10;
     }
 
     // check game over
