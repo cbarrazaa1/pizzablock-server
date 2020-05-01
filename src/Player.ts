@@ -7,6 +7,8 @@ export type DataPacketHandler = (...args: any[]) => void;
 
 class Player {
   public socket: io.Socket;
+  public id: string;
+  public name: string;
   public board: number[][];
   public lines: number;
   public level: number;
@@ -15,8 +17,10 @@ class Player {
   public packetHandler!: DataPacketHandler;
   private lineCounter: number;
 
-  constructor(socket: io.Socket, initialLevel: number) {
+  constructor(socket: io.Socket, initialLevel: number, id: string, name: string) {
     this.socket = socket;
+    this.id = id;
+    this.name = name;
     this.board = new Array(BOARD_WIDTH)
       .fill(null)
       .map(() => new Array(BOARD_HEIGHT).fill(0));

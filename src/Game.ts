@@ -1,7 +1,7 @@
 import io from 'socket.io';
 import Player from './Player';
 import {StrMap, Nullable} from './util/Types';
-import {server} from './Server';
+import {server, QueueItem} from './Server';
 import {
   PacketType,
   Packet,
@@ -10,29 +10,33 @@ import {
   GameOverPacket,
   EndGamePacket,
 } from './Packets';
+import {UserController} from './api/UserController';
+import {GameController} from './api/GameController';
 
 type PacketHandler = (socket: io.Socket, packet: Packet) => void;
 
 class Game {
+  private id: string;
   private players: StrMap<Player>;
   private handlers: StrMap<PacketHandler>;
   private initialLevel: number;
   public hasEnded: boolean;
 
-  constructor(sockets: io.Socket[], initialLevel: number) {
+  constructor(id: string, playerInfo: QueueItem[], initialLevel: number) {
+    this.id = id;
     this.players = {};
     this.handlers = {};
     this.initialLevel = initialLevel;
     this.hasEnded = false;
     this.handleEvent = this.handleEvent.bind(this);
-    sockets.forEach((socket) => {
-      const player = new Player(socket, initialLevel);
+    playerInfo.forEach((info) => {
+      const player = new Player(info.socket, initialLevel, info.id, info.name);
       player.packetHandler = (data: any) => {
-        this.handleEvent(socket, data);
+        this.handleEvent(player.socket, data);
       };
 
-      this.players[socket.conn.id] = player;
-      socket.on('data_packet', player.packetHandler);
+      this.players[info.socket.conn.id] = player;
+      player.socket.on('data_packet', player.packetHandler);
     });
 
     this.initNetworkHandlers();
@@ -77,7 +81,7 @@ class Game {
     this.sendDataToAllBut(
       who.socket,
       new GameOverPacket({
-        whoID: who.socket.conn.id,
+        whoID: who.id,
       }),
     );
   }
@@ -85,7 +89,7 @@ class Game {
   private sendEndGame(winner: Player): void {
     this.sendDataToAll(
       new EndGamePacket({
-        winnerID: winner.socket.conn.id,
+        winnerID: winner.id,
       }),
     );
 
@@ -106,10 +110,14 @@ class Game {
     }
   }
 
-  private handlePlaceBlock(socket: io.Socket, packet: PlaceBlockPacket): void {
+  private async handlePlaceBlock(
+    socket: io.Socket,
+    packet: PlaceBlockPacket,
+  ): Promise<void> {
     const block = packet.data;
     const {x, y, data} = block;
     const player = this.players[socket.conn.id];
+    const playersList = Object.values(this.players);
 
     // update player's board
     const clearedLines = player.updateBoard(x, y, data);
@@ -126,7 +134,7 @@ class Game {
       score: 0,
     };
 
-    Object.values(this.players).forEach((player) => {
+    playersList.forEach((player) => {
       if (!player.gameOver) {
         gameEnded = false;
         return;
@@ -139,6 +147,18 @@ class Game {
     });
 
     if (gameEnded) {
+      // add the game to the players
+      await UserController.updateUsersByIDs({
+        user_list: playersList.map((player) => player.id),
+        game_id: this.id,
+      });
+
+      await GameController.updateGameById(this.id, {
+        user_id_list: playersList
+          .filter((player) => player.id !== winner.id)
+          .map((player) => player.id),
+        winner: winner.id,
+      });
       this.sendEndGame(this.players[winner.id]);
     }
 
