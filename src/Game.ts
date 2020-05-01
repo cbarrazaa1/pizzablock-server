@@ -147,19 +147,18 @@ class Game {
     });
 
     if (gameEnded) { 
-      console.log(playersList.map((player) => player.id));
       // add the game to the players
       await UserController.updateUsersByIDs({
         user_list: playersList.map((player) => player.id),
         game_id: this.id,
       });
 
-      await GameController.updateGameById(this.id, {
-        user_id_list: playersList
-          .filter((player) => player.id !== winner.id)
-          .map((player) => player.id),
-        winner: winner.id,
-      });
+      // await GameController.updateGameById(this.id, {
+      //   user_id_list: playersList
+      //     .filter((player) => player.id !== winner.id)
+      //     .map((player) => player.id),
+      //   winner: winner.id,
+      // });
       this.sendEndGame(this.players[winner.id]);
     }
 
