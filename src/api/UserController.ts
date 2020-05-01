@@ -23,7 +23,7 @@ type UpdateUsersOptions = {
 };
 
 async function updateUsersByIDs(options: UpdateUsersOptions): Promise<boolean> {
-  const res = await fetch(`${SERVER_URL}/update/user/game`, {
+  const res = await fetch(`${SERVER_URL}/update/user-game`, {
     method: 'PUT',
     body: JSON.stringify(options),
   });
