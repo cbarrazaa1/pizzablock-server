@@ -146,7 +146,8 @@ class Game {
       }
     });
 
-    if (gameEnded) {
+    if (gameEnded) { 
+      console.log(playersList.map((player) => player.id));
       // add the game to the players
       await UserController.updateUsersByIDs({
         user_list: playersList.map((player) => player.id),
