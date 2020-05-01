@@ -141,7 +141,7 @@ class Game {
       }
 
       if (player.score >= winner.score) {
-        winner.id = player.socket.conn.id;
+        winner.id = player.id;
         winner.score = player.score;
       }
     });
