@@ -131,6 +131,7 @@ class Game {
     let gameEnded = true;
     const winner = {
       id: '',
+      socketID: '',
       score: 0,
     };
 
@@ -142,6 +143,7 @@ class Game {
 
       if (player.score >= winner.score) {
         winner.id = player.id;
+        winner.socketID = player.socket.conn.id;
         winner.score = player.score;
       }
     });
@@ -159,7 +161,7 @@ class Game {
           .map((player) => player.id),
         winner: winner.id,
       });
-      this.sendEndGame(this.players[winner.id]);
+      this.sendEndGame(this.players[winner.socketID]);
     }
 
     // send update to other players
