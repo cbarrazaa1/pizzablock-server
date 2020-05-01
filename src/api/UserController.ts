@@ -12,6 +12,9 @@ async function updateUserById(
   const res = await fetch(`${SERVER_URL}}/update/user/${id}`, {
     method: 'PUT',
     body: JSON.stringify(options),
+    headers: {
+      'Content-Type': 'application/json',
+    },
   });
 
   return res.status === 200;
@@ -26,6 +29,9 @@ async function updateUsersByIDs(options: UpdateUsersOptions): Promise<boolean> {
   const res = await fetch(`${SERVER_URL}/update/user-game`, {
     method: 'PUT',
     body: JSON.stringify(options),
+    headers: {
+      'Content-Type': 'application/json',
+    },
   });
 
   return res.status === 201;

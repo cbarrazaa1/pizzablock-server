@@ -29,6 +29,9 @@ async function updateGameById(id: string, options: UpdateGameOptions): Promise<b
   const res = await fetch(`${SERVER_URL}/update/game/${id}`, {
     method: 'PUT',
     body: JSON.stringify(options),
+    headers: {
+      'Content-Type': 'application/json',
+    },
   });
 
   return res.status === 200;
