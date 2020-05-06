@@ -30,6 +30,21 @@ export default class Server {
 
     this.server.on('connection', this.onSocketConnected.bind(this));
     this.initNetworkHandlers();
+
+    // check for ended games periodically
+    setInterval(() => {
+      const gamesToRemove: number[] = [];
+      this.games.forEach((game, i) => {
+        if (game.hasEnded) {
+          gamesToRemove.push(i);
+        }
+      });
+
+      gamesToRemove.forEach(index => {
+        console.log(`Removing game ${index}`);
+        this.games.splice(index, 1);
+      });
+    }, 30000);
   }
 
   private on(type: PacketType, handler: PacketHandler): void {
@@ -49,7 +64,7 @@ export default class Server {
 
     // listen for events
     socket.on('disconnect', () => this.onSocketDisconnected(socket));
-    socket.on('data_packet', (data) => this.handleEvent(socket, data));
+    socket.on('data_packet', data => this.handleEvent(socket, data));
 
     // add to socket list
     this.sockets[socket.conn.id] = socket;
