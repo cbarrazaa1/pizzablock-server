@@ -35,11 +35,23 @@ class Game {
         this.handleEvent(player.socket, data);
       };
 
+      player.disconnectedHandler = () => {
+        this.onPlayerDisconnected(player);
+      }
+
       this.players[info.socket.conn.id] = player;
       player.socket.on('data_packet', player.packetHandler);
+      player.socket.on('disconnect', player.disconnectedHandler);
     });
 
     this.initNetworkHandlers();
+  }
+
+  private onPlayerDisconnected(player: Player): void {
+    player.gameOver = true;
+    player.score = -999999;
+    this.sendGameOver(player);
+    this.checkGameOver();
   }
 
   private on(type: PacketType, handler: PacketHandler): void {
@@ -96,11 +108,12 @@ class Game {
     this.hasEnded = true;
     Object.values(this.players).forEach((player) => {
       player.socket.removeListener('data_packet', player.packetHandler);
+      player.socket.removeListener('disconnect', player.disconnectedHandler);
     });
   }
 
   private initNetworkHandlers(): void {
-    this.on(PacketType.C_1v1_PLACE_BLOCK, this.handlePlaceBlock.bind(this));
+    this.on(PacketType.C_PLACE_BLOCK, this.handlePlaceBlock.bind(this));
   }
 
   private handleEvent(socket: io.Socket, packet: Packet): void {
@@ -128,6 +141,15 @@ class Game {
     }
 
     // check if game has ended
+    this.checkGameOver();
+
+    // send update to other players
+    this.sendPlayerPlaceBlock(player, packet, clearedLines);
+  }
+
+  private checkGameOver(): void {
+    const playersList = Object.values(this.players);
+
     let gameEnded = true;
     const winner = {
       id: '',
@@ -138,6 +160,10 @@ class Game {
     playersList.forEach((player) => {
       if (!player.gameOver) {
         gameEnded = false;
+        return;
+      }
+
+      if (player.socket.disconnected) {
         return;
       }
 
@@ -163,9 +189,6 @@ class Game {
       });
       this.sendEndGame(this.players[winner.socketID]);
     }
-
-    // send update to other players
-    this.sendPlayerPlaceBlock(player, packet, clearedLines);
   }
 }
 

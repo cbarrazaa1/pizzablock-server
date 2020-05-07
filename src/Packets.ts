@@ -1,11 +1,11 @@
 export enum PacketType {
   C_1V1_ENTER_QUEUE,
-  C_1v1_PLACE_BLOCK,
+  C_PLACE_BLOCK,
 
   S_1v1_ENTER_GAME,
-  S_1v1_PLAYER_PLACE_BLOCK,
-  S_1v1_GAME_OVER,
-  S_1v1_END_GAME,
+  S_PLAYER_PLACE_BLOCK,
+  S_GAME_OVER,
+  S_END_GAME,
 }
 
 export class Packet {
@@ -44,7 +44,7 @@ export class PlaceBlockPacket extends Packet {
 
   constructor(data: PlaceBlockPacketData) {
     super();
-    this.type = PacketType.C_1v1_PLACE_BLOCK;
+    this.type = PacketType.C_PLACE_BLOCK;
     this.data = data;
   }
 }
@@ -83,7 +83,7 @@ export class PlayerPlaceBlockPacket extends Packet {
 
   constructor(data: PlayerPlaceBlockData) {
     super();
-    this.type = PacketType.S_1v1_PLAYER_PLACE_BLOCK;
+    this.type = PacketType.S_PLAYER_PLACE_BLOCK;
     this.data = data;
   }
 }
@@ -97,7 +97,7 @@ export class GameOverPacket extends Packet {
 
   constructor(data: GameOverPacketData) {
     super();
-    this.type = PacketType.S_1v1_GAME_OVER;
+    this.type = PacketType.S_GAME_OVER;
     this.data = data;
   }
 }
@@ -111,7 +111,7 @@ export class EndGamePacket extends Packet {
 
   constructor(data: EndGamePacketData) {
     super();
-    this.type = PacketType.S_1v1_END_GAME;
+    this.type = PacketType.S_END_GAME;
     this.data = data;
   }
 }

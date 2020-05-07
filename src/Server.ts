@@ -41,7 +41,6 @@ export default class Server {
       });
 
       gamesToRemove.forEach(index => {
-        console.log(`Removing game ${index}`);
         this.games.splice(index, 1);
       });
     }, 30000);

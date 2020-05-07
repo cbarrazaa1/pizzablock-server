@@ -4,6 +4,7 @@ export const BOARD_WIDTH = 10;
 export const BOARD_HEIGHT = 20;
 
 export type DataPacketHandler = (...args: any[]) => void;
+export type DisconnectedHandler = (player: Player) => void;
 
 class Player {
   public socket: io.Socket;
@@ -15,6 +16,7 @@ class Player {
   public score: number;
   public gameOver: boolean;
   public packetHandler!: DataPacketHandler;
+  public disconnectedHandler!: DisconnectedHandler;
   private lineCounter: number;
 
   constructor(socket: io.Socket, initialLevel: number, id: string, name: string) {

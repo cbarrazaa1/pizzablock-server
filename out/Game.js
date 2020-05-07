@@ -58,11 +58,19 @@ var Game = /** @class */ (function () {
             player.packetHandler = function (data) {
                 _this.handleEvent(player.socket, data);
             };
+            player.disconnectedHandler = function () {
+                _this.onPlayerDisconnected(player);
+            };
             _this.players[info.socket.conn.id] = player;
             player.socket.on('data_packet', player.packetHandler);
+            player.socket.on('disconnect', player.disconnectedHandler);
         });
         this.initNetworkHandlers();
     }
+    Game.prototype.onPlayerDisconnected = function (player) {
+        this.sendGameOver(player);
+        this.checkGameOver();
+    };
     Game.prototype.on = function (type, handler) {
         this.handlers[type] = handler;
     };
@@ -99,6 +107,7 @@ var Game = /** @class */ (function () {
         this.hasEnded = true;
         Object.values(this.players).forEach(function (player) {
             player.socket.removeListener('data_packet', player.packetHandler);
+            player.socket.removeListener('disconnect', player.disconnectedHandler);
         });
     };
     Game.prototype.initNetworkHandlers = function () {
@@ -112,7 +121,7 @@ var Game = /** @class */ (function () {
     };
     Game.prototype.handlePlaceBlock = function (socket, packet) {
         return __awaiter(this, void 0, void 0, function () {
-            var block, x, y, data, player, playersList, clearedLines, gameEnded, winner;
+            var block, x, y, data, player, playersList, clearedLines;
             return __generator(this, function (_a) {
                 block = packet.data;
                 x = block.x, y = block.y, data = block.data;
@@ -123,42 +132,47 @@ var Game = /** @class */ (function () {
                 if (player.gameOver) {
                     this.sendGameOver(player);
                 }
-                gameEnded = true;
-                winner = {
-                    id: '',
-                    socketID: '',
-                    score: 0,
-                };
-                playersList.forEach(function (player) {
-                    if (!player.gameOver) {
-                        gameEnded = false;
-                        return;
-                    }
-                    if (player.score >= winner.score) {
-                        winner.id = player.id;
-                        winner.socketID = player.socket.conn.id;
-                        winner.score = player.score;
-                    }
-                });
-                if (gameEnded) {
-                    // add the game to the players
-                    UserController_1.UserController.updateUsersByIDs({
-                        user_list: playersList.map(function (player) { return player.id; }),
-                        game_id: this.id,
-                    });
-                    GameController_1.GameController.updateGameById(this.id, {
-                        user_id_list: playersList
-                            .filter(function (player) { return player.id !== winner.id; })
-                            .map(function (player) { return player.id; }),
-                        winner: winner.id,
-                    });
-                    this.sendEndGame(this.players[winner.socketID]);
-                }
+                // check if game has ended
+                this.checkGameOver();
                 // send update to other players
                 this.sendPlayerPlaceBlock(player, packet, clearedLines);
                 return [2 /*return*/];
             });
         });
+    };
+    Game.prototype.checkGameOver = function () {
+        var playersList = Object.values(this.players);
+        var gameEnded = true;
+        var winner = {
+            id: '',
+            socketID: '',
+            score: 0,
+        };
+        playersList.forEach(function (player) {
+            if (!player.gameOver) {
+                gameEnded = false;
+                return;
+            }
+            if (player.score >= winner.score) {
+                winner.id = player.id;
+                winner.socketID = player.socket.conn.id;
+                winner.score = player.score;
+            }
+        });
+        if (gameEnded) {
+            // add the game to the players
+            UserController_1.UserController.updateUsersByIDs({
+                user_list: playersList.map(function (player) { return player.id; }),
+                game_id: this.id,
+            });
+            GameController_1.GameController.updateGameById(this.id, {
+                user_id_list: playersList
+                    .filter(function (player) { return player.id !== winner.id; })
+                    .map(function (player) { return player.id; }),
+                winner: winner.id,
+            });
+            this.sendEndGame(this.players[winner.socketID]);
+        }
     };
     return Game;
 }());
