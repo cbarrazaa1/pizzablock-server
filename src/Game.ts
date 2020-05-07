@@ -107,6 +107,7 @@ class Game {
     this.sendDataToAll(
       new EndGamePacket({
         winnerID: winner.id,
+        gameID: this.id,
       }),
     );
 
