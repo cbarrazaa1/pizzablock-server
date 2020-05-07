@@ -83,6 +83,29 @@ export default class Server {
   private onSocketDisconnected(socket: io.Socket): void {
     console.log(`Client ${socket.conn.remoteAddress} disconnected.`);
     socket.removeAllListeners();
+
+    // check queues
+    let playerIndex = -1;
+    this.queue1v1.forEach((player, i) => {
+      if (socket.conn.id === player.socket.conn.id) {
+        playerIndex = i;
+      }
+    });
+    
+    if (playerIndex !== -1) {
+      this.queue1v1.splice(playerIndex, 1);
+    } else {
+      this.queue1v4.forEach((player, i) => {
+        if (socket.conn.id === player.socket.conn.id) {
+          playerIndex = i;
+        }
+      });
+
+      if (playerIndex !== -1) {
+        this.queue1v4.splice(playerIndex, 1);
+      }
+    }
+    
     delete this.sockets[socket.conn.id];
   }
 
