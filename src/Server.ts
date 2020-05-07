@@ -59,7 +59,7 @@ export default class Server {
   }
 
   private onSocketConnected(socket: io.Socket): void {
-    console.log(`Connection from ${socket.request.connection.remoteAddress}.`);
+    console.log(`Connection from ${socket.handshake.headers['X-FORWARDED-FOR']}.`);
 
     // listen for events
     socket.on('disconnect', () => this.onSocketDisconnected(socket));
