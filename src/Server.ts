@@ -189,6 +189,7 @@ export default class Server {
     socket: io.Socket,
     packet: EnterQueue1v4Packet,
   ): Promise<void> {
+    console.log('Queue length:', this.queue1v4.length);
     // check if queue has enough people
     if (this.queue1v4.length >= 4) {
       const players = [{
