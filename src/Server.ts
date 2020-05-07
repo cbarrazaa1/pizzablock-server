@@ -1,6 +1,13 @@
 import io from 'socket.io';
 import {StrMap} from './util/Types';
-import {Packet, PacketType, EnterGamePacket, EnterQueuePacket} from './Packets';
+import {
+  Packet,
+  PacketType,
+  EnterGame1v1Packet,
+  EnterGame1v4Packet,
+  EnterQueue1v1Packet,
+  EnterQueue1v4Packet,
+} from './Packets';
 import Game from './Game';
 import {GameController} from './api/GameController';
 
@@ -21,6 +28,7 @@ export default class Server {
 
   // queues
   private queue1v1: QueueItem[];
+  private queue1v4: QueueItem[];
 
   constructor(server: io.Server) {
     this.server = server;
@@ -28,6 +36,7 @@ export default class Server {
     this.handlers = {};
     this.games = [];
     this.queue1v1 = [];
+    this.queue1v4 = [];
 
     this.server.on('connection', this.onSocketConnected.bind(this));
     this.initNetworkHandlers();
@@ -57,6 +66,7 @@ export default class Server {
 
   private initNetworkHandlers(): void {
     this.on(PacketType.C_1V1_ENTER_QUEUE, this.handleEnterQueue1v1.bind(this));
+    this.on(PacketType.C_1v4_ENTER_QUEUE, this.handleEnterQueue1v4.bind(this));
   }
 
   private onSocketConnected(socket: io.Socket): void {
@@ -76,19 +86,36 @@ export default class Server {
     delete this.sockets[socket.conn.id];
   }
 
-  private sendEnterGame(
+  private sendEnterGame1v1(
     socket: io.Socket,
     other: QueueItem,
     initialLevel: number,
-  ) {
+  ): void {
     this.sendDataTo(
       socket,
-      new EnterGamePacket({
+      new EnterGame1v1Packet({
         otherID: other.id,
         initialLevel,
         otherName: other.name,
       }),
     );
+  }
+
+  private sendEnterGame1v4(players: QueueItem[], initialLevel: number): void {
+    players.forEach(player => {
+      this.sendDataTo(
+        player.socket,
+        new EnterGame1v4Packet({
+          others: players
+            .filter(curr => curr.id !== player.id)
+            .map(curr => ({
+              id: curr.id,
+              name: curr.name,
+            })),
+          initialLevel,
+        }),
+      );
+    });
   }
 
   private handleEvent(socket: io.Socket, packet: Packet): void {
@@ -100,7 +127,7 @@ export default class Server {
 
   private async handleEnterQueue1v1(
     socket: io.Socket,
-    packet: EnterQueuePacket,
+    packet: EnterQueue1v1Packet,
   ): Promise<void> {
     // check if someone else is in queue
     if (this.queue1v1.length > 0) {
@@ -113,8 +140,8 @@ export default class Server {
       const other = this.queue1v1.shift()!;
 
       // notify players that game started
-      this.sendEnterGame(socket, other, 9);
-      this.sendEnterGame(other.socket, thisOne, 9);
+      this.sendEnterGame1v1(socket, other, 9);
+      this.sendEnterGame1v1(other.socket, thisOne, 9);
 
       // create the game
       const gameID = await GameController.createGame({
@@ -128,6 +155,44 @@ export default class Server {
 
     // add to queue
     this.queue1v1.push({
+      socket,
+      id: packet.data.userID,
+      name: packet.data.name,
+      ip: packet.data.ip,
+    });
+  }
+
+  private async handleEnterQueue1v4(
+    socket: io.Socket,
+    packet: EnterQueue1v4Packet,
+  ): Promise<void> {
+    // check if queue has enough people
+    if (this.queue1v4.length >= 4) {
+      const players = [{
+        socket,
+        id: packet.data.userID,
+        name: packet.data.name,
+        ip: packet.data.ip,
+      }];
+      for (let i = 0; i < 4; i++) {
+        players.push(this.queue1v4.shift()!);
+      }
+
+      // notify players
+      this.sendEnterGame1v4(players, 9);
+
+      // create the game
+      const gameID = await GameController.createGame({
+        mode_id: '5eab7d718c3f100017bdcbb2',
+        money_pool: 0,
+      });
+      const game = new Game(gameID, players, 9);
+      this.games.push(game);
+      return;
+    }
+
+    // add to queue
+    this.queue1v4.push({
       socket,
       id: packet.data.userID,
       name: packet.data.name,

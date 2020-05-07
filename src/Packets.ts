@@ -1,8 +1,10 @@
 export enum PacketType {
   C_1V1_ENTER_QUEUE,
+  C_1v4_ENTER_QUEUE,
   C_PLACE_BLOCK,
 
   S_1v1_ENTER_GAME,
+  S_1v4_ENTER_GAME,
   S_PLAYER_PLACE_BLOCK,
   S_GAME_OVER,
   S_END_GAME,
@@ -23,12 +25,22 @@ type EnterQueuePacketData = {
   readonly ip: string;
 };
 
-export class EnterQueuePacket extends Packet {
+export class EnterQueue1v1Packet extends Packet {
   public data: EnterQueuePacketData;
 
   constructor(data: EnterQueuePacketData) {
     super();
     this.type = PacketType.C_1V1_ENTER_QUEUE;
+    this.data = data;
+  }
+}
+
+export class EnterQueue1v4Packet extends Packet {
+  public data: EnterQueuePacketData;
+
+  constructor(data: EnterQueuePacketData) {
+    super();
+    this.type = PacketType.C_1v4_ENTER_QUEUE;
     this.data = data;
   }
 }
@@ -50,23 +62,42 @@ export class PlaceBlockPacket extends Packet {
   }
 }
 
-type EnterGamePacketData = {
+type EnterGame1v1PacketData = {
   readonly otherID: string;
   readonly otherName: string;
   readonly initialLevel: number;
 };
 
-export class EnterGamePacket extends Packet {
-  public data: EnterGamePacketData;
+export class EnterGame1v1Packet extends Packet {
+  public data: EnterGame1v1PacketData;
 
-  constructor(data: EnterGamePacketData) {
+  constructor(data: EnterGame1v1PacketData) {
     super();
     this.type = PacketType.S_1v1_ENTER_GAME;
     this.data = data;
   }
 }
 
+type EnterGame1v4PacketData = {
+  readonly others: {
+    id: string,
+    name: string,
+  }[];
+  readonly initialLevel: number;
+}
+
+export class EnterGame1v4Packet extends Packet {
+  public data: EnterGame1v4PacketData;
+
+  constructor(data: EnterGame1v4PacketData) {
+    super();
+    this.type = PacketType.S_1v4_ENTER_GAME;
+    this.data = data;
+  }
+}
+
 type PlayerPlaceBlockData = {
+  readonly whoID: string;
   block: {
     readonly x: number;
     readonly y: number;

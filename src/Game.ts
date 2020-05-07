@@ -85,6 +85,7 @@ class Game {
     this.sendDataToAllBut(
       exclude.socket,
       new PlayerPlaceBlockPacket({
+        whoID: exclude.id,
         block: packet.data,
         level: exclude.level,
         lines: exclude.lines,
