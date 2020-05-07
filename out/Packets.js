@@ -16,11 +16,11 @@ Object.defineProperty(exports, "__esModule", { value: true });
 var PacketType;
 (function (PacketType) {
     PacketType[PacketType["C_1V1_ENTER_QUEUE"] = 0] = "C_1V1_ENTER_QUEUE";
-    PacketType[PacketType["C_1v1_PLACE_BLOCK"] = 1] = "C_1v1_PLACE_BLOCK";
+    PacketType[PacketType["C_PLACE_BLOCK"] = 1] = "C_PLACE_BLOCK";
     PacketType[PacketType["S_1v1_ENTER_GAME"] = 2] = "S_1v1_ENTER_GAME";
-    PacketType[PacketType["S_1v1_PLAYER_PLACE_BLOCK"] = 3] = "S_1v1_PLAYER_PLACE_BLOCK";
-    PacketType[PacketType["S_1v1_GAME_OVER"] = 4] = "S_1v1_GAME_OVER";
-    PacketType[PacketType["S_1v1_END_GAME"] = 5] = "S_1v1_END_GAME";
+    PacketType[PacketType["S_PLAYER_PLACE_BLOCK"] = 3] = "S_PLAYER_PLACE_BLOCK";
+    PacketType[PacketType["S_GAME_OVER"] = 4] = "S_GAME_OVER";
+    PacketType[PacketType["S_END_GAME"] = 5] = "S_END_GAME";
 })(PacketType = exports.PacketType || (exports.PacketType = {}));
 var Packet = /** @class */ (function () {
     function Packet() {
@@ -44,7 +44,7 @@ var PlaceBlockPacket = /** @class */ (function (_super) {
     __extends(PlaceBlockPacket, _super);
     function PlaceBlockPacket(data) {
         var _this = _super.call(this) || this;
-        _this.type = PacketType.C_1v1_PLACE_BLOCK;
+        _this.type = PacketType.C_PLACE_BLOCK;
         _this.data = data;
         return _this;
     }
@@ -66,7 +66,7 @@ var PlayerPlaceBlockPacket = /** @class */ (function (_super) {
     __extends(PlayerPlaceBlockPacket, _super);
     function PlayerPlaceBlockPacket(data) {
         var _this = _super.call(this) || this;
-        _this.type = PacketType.S_1v1_PLAYER_PLACE_BLOCK;
+        _this.type = PacketType.S_PLAYER_PLACE_BLOCK;
         _this.data = data;
         return _this;
     }
@@ -77,7 +77,7 @@ var GameOverPacket = /** @class */ (function (_super) {
     __extends(GameOverPacket, _super);
     function GameOverPacket(data) {
         var _this = _super.call(this) || this;
-        _this.type = PacketType.S_1v1_GAME_OVER;
+        _this.type = PacketType.S_GAME_OVER;
         _this.data = data;
         return _this;
     }
@@ -88,7 +88,7 @@ var EndGamePacket = /** @class */ (function (_super) {
     __extends(EndGamePacket, _super);
     function EndGamePacket(data) {
         var _this = _super.call(this) || this;
-        _this.type = PacketType.S_1v1_END_GAME;
+        _this.type = PacketType.S_END_GAME;
         _this.data = data;
         return _this;
     }

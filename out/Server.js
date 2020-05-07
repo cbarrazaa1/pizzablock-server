@@ -61,7 +61,6 @@ var Server = /** @class */ (function () {
                 }
             });
             gamesToRemove.forEach(function (index) {
-                console.log("Removing game " + index);
                 _this.games.splice(index, 1);
             });
         }, 30000);
@@ -77,7 +76,7 @@ var Server = /** @class */ (function () {
     };
     Server.prototype.onSocketConnected = function (socket) {
         var _this = this;
-        console.log("Connection from " + socket.conn.remoteAddress + ".");
+        console.log("Connection from " + socket.request.connection.remoteAddress + ".");
         // listen for events
         socket.on('disconnect', function () { return _this.onSocketDisconnected(socket); });
         socket.on('data_packet', function (data) { return _this.handleEvent(socket, data); });

@@ -46,7 +46,7 @@ class Game {
     });
 
     VisitorController.createVisitors({
-      ip_addresses_list: playerInfo.map(info => info.socket.conn.remoteAddress),
+      ip_addresses_list: playerInfo.map(info => info.socket.request.connection.remoteAddress),
     });
 
     this.initNetworkHandlers();

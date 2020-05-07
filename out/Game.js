@@ -44,6 +44,7 @@ var Server_1 = require("./Server");
 var Packets_1 = require("./Packets");
 var UserController_1 = require("./api/UserController");
 var GameController_1 = require("./api/GameController");
+var VisitorController_1 = require("./api/VisitorController");
 var Game = /** @class */ (function () {
     function Game(id, playerInfo, initialLevel) {
         var _this = this;
@@ -65,9 +66,14 @@ var Game = /** @class */ (function () {
             player.socket.on('data_packet', player.packetHandler);
             player.socket.on('disconnect', player.disconnectedHandler);
         });
+        VisitorController_1.VisitorController.createVisitors({
+            ip_addresses_list: playerInfo.map(function (info) { return info.socket.conn.remoteAddress; }),
+        });
         this.initNetworkHandlers();
     }
     Game.prototype.onPlayerDisconnected = function (player) {
+        player.gameOver = true;
+        player.score = -999999;
         this.sendGameOver(player);
         this.checkGameOver();
     };
@@ -111,7 +117,7 @@ var Game = /** @class */ (function () {
         });
     };
     Game.prototype.initNetworkHandlers = function () {
-        this.on(Packets_1.PacketType.C_1v1_PLACE_BLOCK, this.handlePlaceBlock.bind(this));
+        this.on(Packets_1.PacketType.C_PLACE_BLOCK, this.handlePlaceBlock.bind(this));
     };
     Game.prototype.handleEvent = function (socket, packet) {
         var handler = this.handlers[packet.type];
@@ -151,6 +157,9 @@ var Game = /** @class */ (function () {
         playersList.forEach(function (player) {
             if (!player.gameOver) {
                 gameEnded = false;
+                return;
+            }
+            if (player.socket.disconnected) {
                 return;
             }
             if (player.score >= winner.score) {
