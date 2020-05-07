@@ -10,6 +10,7 @@ export type QueueItem = {
   socket: io.Socket;
   id: string;
   name: string;
+  ip: string;
 };
 
 export default class Server {
@@ -59,7 +60,7 @@ export default class Server {
   }
 
   private onSocketConnected(socket: io.Socket): void {
-    console.log(`Connection from ${socket.handshake.headers['X-FORWARDED-FOR']}.`);
+    console.log(`Connection from ${socket.conn.remoteAddress}.`);
 
     // listen for events
     socket.on('disconnect', () => this.onSocketDisconnected(socket));
@@ -107,6 +108,7 @@ export default class Server {
         socket,
         id: packet.data.userID,
         name: packet.data.name,
+        ip: packet.data.ip,
       };
       const other = this.queue1v1.shift()!;
 
@@ -129,6 +131,7 @@ export default class Server {
       socket,
       id: packet.data.userID,
       name: packet.data.name,
+      ip: packet.data.ip,
     });
   }
 }
