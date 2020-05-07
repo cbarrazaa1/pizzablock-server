@@ -140,15 +140,15 @@ export default class Server {
       const other = this.queue1v1.shift()!;
 
       // notify players that game started
-      this.sendEnterGame1v1(socket, other, 5);
-      this.sendEnterGame1v1(other.socket, thisOne, 5);
+      this.sendEnterGame1v1(socket, other, 7);
+      this.sendEnterGame1v1(other.socket, thisOne, 7);
 
       // create the game
       const gameID = await GameController.createGame({
         mode_id: '5eab7d278c3f100017bdcbb1',
         money_pool: 0,
       });
-      const game = new Game(gameID, [thisOne, other], 5);
+      const game = new Game(gameID, [thisOne, other], 7);
       this.games.push(game);
       return;
     }
@@ -179,14 +179,14 @@ export default class Server {
       }
 
       // notify players
-      this.sendEnterGame1v4(players, 5);
+      this.sendEnterGame1v4(players, 7);
 
       // create the game
       const gameID = await GameController.createGame({
         mode_id: '5eab7d718c3f100017bdcbb2',
         money_pool: 0,
       });
-      const game = new Game(gameID, players, 5);
+      const game = new Game(gameID, players, 7);
       this.games.push(game);
       return;
     }
