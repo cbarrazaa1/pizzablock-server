@@ -190,7 +190,6 @@ class Game {
 
       GameController.updateGameById(this.id, {
         user_id_list: playersList
-          .filter((player) => player.id !== winner.id)
           .map((player) => player.id),
         winner: winner.id,
       });
