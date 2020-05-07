@@ -12,6 +12,7 @@ import {
 } from './Packets';
 import {UserController} from './api/UserController';
 import {GameController} from './api/GameController';
+import { VisitorController } from './api/VisitorController';
 
 type PacketHandler = (socket: io.Socket, packet: Packet) => void;
 
@@ -42,6 +43,10 @@ class Game {
       this.players[info.socket.conn.id] = player;
       player.socket.on('data_packet', player.packetHandler);
       player.socket.on('disconnect', player.disconnectedHandler);
+    });
+
+    VisitorController.createVisitors({
+      ip_addresses_list: playerInfo.map(info => info.socket.conn.remoteAddress),
     });
 
     this.initNetworkHandlers();
