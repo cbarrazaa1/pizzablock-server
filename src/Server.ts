@@ -10,6 +10,7 @@ import {
 } from './Packets';
 import Game from './Game';
 import {GameController} from './api/GameController';
+import {Mutex} from 'async-mutex';
 
 type PacketHandler = (socket: io.Socket, packet: Packet) => void;
 
@@ -30,6 +31,10 @@ export default class Server {
   private queue1v1: QueueItem[];
   private queue1v4: QueueItem[];
 
+  // mutex locks for queues
+  private queue1v1Lock: Mutex;
+  private queue1v4Lock: Mutex;
+
   constructor(server: io.Server) {
     this.server = server;
     this.sockets = {};
@@ -37,6 +42,8 @@ export default class Server {
     this.games = [];
     this.queue1v1 = [];
     this.queue1v4 = [];
+    this.queue1v1Lock = new Mutex();
+    this.queue1v4Lock = new Mutex();
 
     this.server.on('connection', this.onSocketConnected.bind(this));
     this.initNetworkHandlers();
@@ -91,7 +98,7 @@ export default class Server {
         playerIndex = i;
       }
     });
-    
+
     if (playerIndex !== -1) {
       this.queue1v1.splice(playerIndex, 1);
     } else {
@@ -105,7 +112,7 @@ export default class Server {
         this.queue1v4.splice(playerIndex, 1);
       }
     }
-    
+
     delete this.sockets[socket.conn.id];
   }
 
@@ -153,35 +160,41 @@ export default class Server {
     packet: EnterQueue1v1Packet,
   ): Promise<void> {
     // check if someone else is in queue
-    if (this.queue1v1.length > 0) {
-      const thisOne = {
+    this.queue1v1Lock.acquire().then(async release => {
+      if (this.queue1v1.length > 0) {
+        const thisOne = {
+          socket,
+          id: packet.data.userID,
+          name: packet.data.name,
+          ip: packet.data.ip,
+        };
+        const other = this.queue1v1.shift()!;
+
+        // notify players that game started
+        this.sendEnterGame1v1(socket, other, 7);
+        this.sendEnterGame1v1(other.socket, thisOne, 7);
+
+        // create the game
+        const gameID = await GameController.createGame({
+          mode_id: '5eab7d278c3f100017bdcbb1',
+          money_pool: 0,
+        });
+        const game = new Game(gameID, [thisOne, other], 7);
+        this.games.push(game);
+
+        release();
+        return;
+      }
+
+      // add to queue
+      this.queue1v1.push({
         socket,
         id: packet.data.userID,
         name: packet.data.name,
         ip: packet.data.ip,
-      };
-      const other = this.queue1v1.shift()!;
-
-      // notify players that game started
-      this.sendEnterGame1v1(socket, other, 7);
-      this.sendEnterGame1v1(other.socket, thisOne, 7);
-
-      // create the game
-      const gameID = await GameController.createGame({
-        mode_id: '5eab7d278c3f100017bdcbb1',
-        money_pool: 0,
       });
-      const game = new Game(gameID, [thisOne, other], 7);
-      this.games.push(game);
-      return;
-    }
 
-    // add to queue
-    this.queue1v1.push({
-      socket,
-      id: packet.data.userID,
-      name: packet.data.name,
-      ip: packet.data.ip,
+      release();
     });
   }
 
@@ -189,15 +202,18 @@ export default class Server {
     socket: io.Socket,
     packet: EnterQueue1v4Packet,
   ): Promise<void> {
-    console.log('Queue length:', this.queue1v4.length);
+    const release = await this.queue1v4Lock.acquire();
+
     // check if queue has enough people
     if (this.queue1v4.length >= 4) {
-      const players = [{
-        socket,
-        id: packet.data.userID,
-        name: packet.data.name,
-        ip: packet.data.ip,
-      }];
+      const players = [
+        {
+          socket,
+          id: packet.data.userID,
+          name: packet.data.name,
+          ip: packet.data.ip,
+        },
+      ];
       for (let i = 0; i < 4; i++) {
         players.push(this.queue1v4.shift()!);
       }
@@ -212,6 +228,8 @@ export default class Server {
       });
       const game = new Game(gameID, players, 7);
       this.games.push(game);
+
+      release();
       return;
     }
 
@@ -222,6 +240,8 @@ export default class Server {
       name: packet.data.name,
       ip: packet.data.ip,
     });
+
+    release();
   }
 }
 
