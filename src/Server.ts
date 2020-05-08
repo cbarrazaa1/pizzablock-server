@@ -202,46 +202,46 @@ export default class Server {
     socket: io.Socket,
     packet: EnterQueue1v4Packet,
   ): Promise<void> {
-    const release = await this.queue1v4Lock.acquire();
+    this.queue1v4Lock.acquire().then(async release => {
+      // check if queue has enough people
+      if (this.queue1v4.length >= 4) {
+        const players = [
+          {
+            socket,
+            id: packet.data.userID,
+            name: packet.data.name,
+            ip: packet.data.ip,
+          },
+        ];
+        for (let i = 0; i < 4; i++) {
+          players.push(this.queue1v4.shift()!);
+        }
 
-    // check if queue has enough people
-    if (this.queue1v4.length >= 4) {
-      const players = [
-        {
-          socket,
-          id: packet.data.userID,
-          name: packet.data.name,
-          ip: packet.data.ip,
-        },
-      ];
-      for (let i = 0; i < 4; i++) {
-        players.push(this.queue1v4.shift()!);
+        // notify players
+        this.sendEnterGame1v4(players, 7);
+
+        // create the game
+        const gameID = await GameController.createGame({
+          mode_id: '5eab7d718c3f100017bdcbb2',
+          money_pool: 0,
+        });
+        const game = new Game(gameID, players, 7);
+        this.games.push(game);
+
+        release();
+        return;
       }
 
-      // notify players
-      this.sendEnterGame1v4(players, 7);
-
-      // create the game
-      const gameID = await GameController.createGame({
-        mode_id: '5eab7d718c3f100017bdcbb2',
-        money_pool: 0,
+      // add to queue
+      this.queue1v4.push({
+        socket,
+        id: packet.data.userID,
+        name: packet.data.name,
+        ip: packet.data.ip,
       });
-      const game = new Game(gameID, players, 7);
-      this.games.push(game);
 
       release();
-      return;
-    }
-
-    // add to queue
-    this.queue1v4.push({
-      socket,
-      id: packet.data.userID,
-      name: packet.data.name,
-      ip: packet.data.ip,
     });
-
-    release();
   }
 }
 
