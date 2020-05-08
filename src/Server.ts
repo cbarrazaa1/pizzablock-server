@@ -14,6 +14,9 @@ import {Mutex} from 'async-mutex';
 
 type PacketHandler = (socket: io.Socket, packet: Packet) => void;
 
+const MODE_1V1_ID = '5eab7d278c3f100017bdcbb1';
+const MODE_1V4_ID = '5eab7d718c3f100017bdcbb2';
+
 export type QueueItem = {
   socket: io.Socket;
   id: string;
@@ -176,8 +179,8 @@ export default class Server {
 
         // create the game
         const gameID = await GameController.createGame({
-          mode_id: '5eab7d278c3f100017bdcbb1',
-          money_pool: 0,
+          mode_id: MODE_1V1_ID,
+          money_pool: 20,
         });
         const game = new Game(gameID, [thisOne, other], 7);
         this.games.push(game);
@@ -222,8 +225,8 @@ export default class Server {
 
         // create the game
         const gameID = await GameController.createGame({
-          mode_id: '5eab7d718c3f100017bdcbb2',
-          money_pool: 0,
+          mode_id: MODE_1V4_ID,
+          money_pool: 25,
         });
         const game = new Game(gameID, players, 7);
         this.games.push(game);
