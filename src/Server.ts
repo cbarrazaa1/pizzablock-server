@@ -53,16 +53,7 @@ export default class Server {
 
     // check for ended games periodically
     setInterval(() => {
-      const gamesToRemove: number[] = [];
-      this.games.forEach((game, i) => {
-        if (game.hasEnded) {
-          gamesToRemove.push(i);
-        }
-      });
-
-      gamesToRemove.forEach(index => {
-        this.games.splice(index, 1);
-      });
+      this.games = this.games.filter(game => !game.hasEnded);
     }, 30000);
   }
 
