@@ -12,7 +12,7 @@ import {
 } from './Packets';
 import {UserController} from './api/UserController';
 import {GameController} from './api/GameController';
-import { VisitorController } from './api/VisitorController';
+import {VisitorController} from './api/VisitorController';
 
 type PacketHandler = (socket: io.Socket, packet: Packet) => void;
 
@@ -30,7 +30,7 @@ class Game {
     this.initialLevel = initialLevel;
     this.hasEnded = false;
     this.handleEvent = this.handleEvent.bind(this);
-    playerInfo.forEach((info) => {
+    playerInfo.forEach(info => {
       const player = new Player(info.socket, initialLevel, info.id, info.name);
       player.packetHandler = (data: any) => {
         this.handleEvent(player.socket, data);
@@ -38,7 +38,7 @@ class Game {
 
       player.disconnectedHandler = () => {
         this.onPlayerDisconnected(player);
-      }
+      };
 
       this.players[info.socket.conn.id] = player;
       player.socket.on('data_packet', player.packetHandler);
@@ -64,13 +64,13 @@ class Game {
   }
 
   private sendDataToAll(packet: Packet): void {
-    Object.values(this.players).forEach((player) => {
+    Object.values(this.players).forEach(player => {
       server.sendDataTo(player.socket, packet);
     });
   }
 
   private sendDataToAllBut(socket: io.Socket, packet: Packet): void {
-    Object.values(this.players).forEach((player) => {
+    Object.values(this.players).forEach(player => {
       if (socket.conn.id !== player.socket.conn.id) {
         server.sendDataTo(player.socket, packet);
       }
@@ -113,7 +113,7 @@ class Game {
     );
 
     this.hasEnded = true;
-    Object.values(this.players).forEach((player) => {
+    Object.values(this.players).forEach(player => {
       player.socket.removeListener('data_packet', player.packetHandler);
       player.socket.removeListener('disconnect', player.disconnectedHandler);
     });
@@ -164,7 +164,7 @@ class Game {
       score: 0,
     };
 
-    playersList.forEach((player) => {
+    playersList.forEach(player => {
       if (!player.gameOver) {
         gameEnded = false;
         return;
@@ -181,16 +181,15 @@ class Game {
       }
     });
 
-    if (gameEnded) { 
+    if (gameEnded) {
       // add the game to the players
       UserController.updateUsersByIDs({
-        user_list: playersList.map((player) => player.id),
+        user_list: playersList.map(player => player.id),
         game_id: this.id,
       });
 
       GameController.updateGameById(this.id, {
-        user_id_list: playersList
-          .map((player) => player.id),
+        user_id_list: playersList.map(player => player.id),
         winner: winner.id,
       });
       this.sendEndGame(this.players[winner.socketID]);

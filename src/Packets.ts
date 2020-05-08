@@ -80,11 +80,11 @@ export class EnterGame1v1Packet extends Packet {
 
 type EnterGame1v4PacketData = {
   readonly others: {
-    id: string,
-    name: string,
+    id: string;
+    name: string;
   }[];
   readonly initialLevel: number;
-}
+};
 
 export class EnterGame1v4Packet extends Packet {
   public data: EnterGame1v4PacketData;

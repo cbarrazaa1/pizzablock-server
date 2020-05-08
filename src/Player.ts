@@ -19,7 +19,12 @@ class Player {
   public disconnectedHandler!: DisconnectedHandler;
   private lineCounter: number;
 
-  constructor(socket: io.Socket, initialLevel: number, id: string, name: string) {
+  constructor(
+    socket: io.Socket,
+    initialLevel: number,
+    id: string,
+    name: string,
+  ) {
     this.socket = socket;
     this.id = id;
     this.name = name;
