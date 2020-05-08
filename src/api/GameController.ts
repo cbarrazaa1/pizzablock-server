@@ -1,20 +1,19 @@
 import fetch from 'node-fetch';
-import { SERVER_URL } from './Config';
+import {SERVER_URL} from './Config';
 
-type MongoID = string;
 type CreateGameOptions = {
   mode_id: string;
   money_pool: number;
-}
+};
 
-async function createGame(options: CreateGameOptions): Promise<MongoID> {
+async function createGame(options: CreateGameOptions): Promise<string> {
   const res = await fetch(`${SERVER_URL}/create/game`, {
     method: 'POST',
     body: JSON.stringify(options),
     headers: {
       'Content-Type': 'application/json',
     },
-  }); 
+  });
 
   const json = await res.json();
   return json._id;
@@ -25,7 +24,10 @@ type UpdateGameOptions = {
   winner: string;
 };
 
-async function updateGameById(id: string, options: UpdateGameOptions): Promise<boolean> {
+async function updateGameById(
+  id: string,
+  options: UpdateGameOptions,
+): Promise<boolean> {
   const res = await fetch(`${SERVER_URL}/update/game/${id}`, {
     method: 'PUT',
     body: JSON.stringify(options),

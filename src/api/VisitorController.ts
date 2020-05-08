@@ -5,7 +5,9 @@ type CreateVisitorMultipleOptions = {
   ip_addresses_list: string[];
 };
 
-async function createVisitors(options: CreateVisitorMultipleOptions): Promise<boolean> {
+async function createVisitors(
+  options: CreateVisitorMultipleOptions,
+): Promise<boolean> {
   const res = await fetch(`${SERVER_URL}/create/visitor/multiple`, {
     method: 'POST',
     body: JSON.stringify(options),
@@ -19,4 +21,4 @@ async function createVisitors(options: CreateVisitorMultipleOptions): Promise<bo
 
 export const VisitorController = {
   createVisitors,
-}
+};
