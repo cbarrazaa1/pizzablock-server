@@ -183,15 +183,16 @@ class Game {
 
     if (gameEnded) {
       // add the game to the players
-      UserController.updateUsersByIDs({
-        user_list: playersList.map(player => player.id),
-        game_id: this.id,
-      });
-
       GameController.updateGameById(this.id, {
         user_id_list: playersList.map(player => player.id),
         winner: winner.id,
+      }).then(() => {
+        UserController.updateUsersByIDs({
+          user_list: playersList.map(player => player.id),
+          game_id: this.id,
+        });
       });
+      
       this.sendEndGame(this.players[winner.socketID]);
     }
   }
